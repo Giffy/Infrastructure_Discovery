@@ -1,4 +1,12 @@
 #!/bin/bash
+# This script uses curl to get the server type running in a IP
+# TODO add arguments
+# possible arguments IP address, list of IP addresses, port, list of ports
+# Usage: find_webserver <list of IP addresses> <list of ports>
+# Example: find_webserver "192.168.1.1 192.168.1.3" "80 443"
+# Example for range : find_webserver -r 1-254 "192.168.1" "80 443"
+
+
 # Importing modules
 source ../modules/error_management.sh
 source ../modules/read_setup.sh
@@ -30,13 +38,13 @@ function build_output(){
 
 # Main script
 
-IP_PREFIX="192.168.43."
+IP_PREFIX="192.168.1."
 PORT_RANGE="80 443 8080 8443"
 
 # Loop over each port in the range
 for PORT in ${PORT_RANGE}; do
   # Loop over each IP address in the range
-  for IP in $(seq -f ${IP_PREFIX}"%g" 207 208); do
+  for IP in $(seq -f ${IP_PREFIX}"%g" 1 254); do
     # Make a curl request to Web servers
     result=$(curl --max-time 3 --silent --head http://${IP}:${PORT} | grep "Server" | tr -d '\r')
     # Check if curl succeeded and Web Server was found
