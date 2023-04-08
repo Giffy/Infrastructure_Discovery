@@ -9,3 +9,5 @@ The repository contains a range of scripts that can be used for different types 
 The scripts are designed to be easy to use and can be run from the command line. They can be customized to suit specific requirements, and the code is well-documented to make it easy to understand and modify.
 
 By using these scripts, IT professionals can gain a better understanding of their organization's IT infrastructure, identify potential security vulnerabilities, and ensure that their systems are running efficiently. The scripts can also be used as part of a regular auditing process to ensure that the infrastructure is up-to-date and meets industry best practices. Overall, this repository provides a valuable resource for anyone involved in IT infrastructure management and security.
+
+Outputs in console, csv and influxdb format.
