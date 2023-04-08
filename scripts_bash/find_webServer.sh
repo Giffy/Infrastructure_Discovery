@@ -4,7 +4,7 @@
 # possible arguments IP address, list of IP addresses, port, list of ports
 # Usage: find_webserver <list of IP addresses> <list of ports>
 # Example: find_webserver "192.168.1.1 192.168.1.3" "80 443"
-# Example for range : find_webserver -r 1-254 "192.168.1" "80 443"
+# Example for ip_prefix : find_webserver "192.168.1" "80 443"
 
 
 # Importing modules
@@ -13,6 +13,63 @@ source ../modules/read_setup.sh
 
 # Read setup files
 OUTPUT_FORMAT=$(get_setting_value "Output" "format" )
+
+# Arguments
+  # Define function to display help message
+  function display_help {
+    echo "Usage: $0 <host_list> <port_list> [options]"
+    echo "Example: find_webServer.sh -s \"192.168.1.2 192.168.1.20\" -p \"80 443\""
+    echo "Example: find_webServer.sh -i \"192.168.1\" -p \"80 443\""
+    echo ""
+    echo "Options:"
+    echo "-s, --servers=LIST  List of hosts to scan"
+    echo "-p, --ports=LIST  List of ports to scan"
+    echo "-i, --ippreffix=LIST  List of IP prefix 192.168.1"
+    echo "-r, --range: Range of hosts (4th IP digit) TODO"
+    echo "-h, --help: Display this help message"
+  }
+
+  # Parse command line arguments
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+      -h|--help)
+        display_help
+        exit 0
+        ;;
+      -s|--servers)
+        HOST_LIST="$2"
+        ARGUMENTS=1
+        shift
+        ;;
+      -p|--ports)
+        PORT_LIST="$2"
+        shift
+        ;;
+      -i|--ippreffix)
+        IP_PREFIX="$2"
+        ARGUMENTS=1
+        shift
+        ;;
+      -r|--rangehost)
+        HOST_RANGE="$2"
+        shift
+        ;;
+      -t|--rangeports)
+        PORT_RANGE="$2"
+        shift
+        ;;
+    esac
+    shift
+  done
+
+  # Check if file option is provided
+  if [ -z "$ARGUMENTS" ]; then
+    echo "No arguments provided"
+    echo ""
+    display_help
+    exit 1
+  fi
 
 # Build output
 function build_output(){
@@ -36,23 +93,66 @@ function build_output(){
 }
 
 
+# Validations
+
+  # Function to validate IP address
+  function check_ip() {
+    # Regular expression to match an IP address
+    ip_regex="^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+    # Check if the input matches the IP address pattern
+    if ! [[ $1 =~ $ip_regex ]]; then
+      print_error "$1 is not a valid IP address"
+    fi
+  }
+
+  # Function to validate port number
+  function check_port() {
+    # Regular expression to match a valid port number
+    port_regex="^[0-9]{1,5}$"
+
+    # Check if the input matches the port number pattern
+    if [[ $1 =~ $port_regex ]] && [ $1 -ge 1 -a $1 -le 65535 ]; then
+      return
+    else
+      print_error "$1 is not a valid port number"
+    fi
+  }
+
+
 # Main script
 
-IP_PREFIX="192.168.1."
-PORT_RANGE="80 443 8080 8443"
-
 # Loop over each port in the range
-for PORT in ${PORT_RANGE}; do
-  # Loop over each IP address in the range
-  for IP in $(seq -f ${IP_PREFIX}"%g" 1 254); do
-    # Make a curl request to Web servers
-    result=$(curl --max-time 3 --silent --head http://${IP}:${PORT} | grep "Server" | tr -d '\r')
-    # Check if curl succeeded and Web Server was found
-    if [ ${#result} -gt 0 ]; then
-      server=$(echo ${result} | awk '{print $2 }' | cut -d '/' -f 1)
-      version=$(echo ${result} | awk '{print $2 }' | cut -d '/' -f 2)
-      build_output
-    fi
-  done
+for PORT in ${PORT_LIST}; do
+  # validate port number
+  check_port "$PORT"
+  if [ ${#IP_PREFIX} -gt 0 ]; then
+    # Loop over each IP_PREFIX in the range
+    for IP in $(seq -f ${IP_PREFIX}".%g" 1 254); do
+      # validate ip
+      check_ip "${IP}"
+      # Make a curl request to Web servers
+      result=$(curl --max-time 3 --silent --head http://${IP}:${PORT} | grep "Server" | tr -d '\r')
+      # Check if curl succeeded and Web Server was found
+      if [ ${#result} -gt 0 ]; then
+        server=$(echo ${result} | awk '{print $2 }' | cut -d '/' -f 1)
+        version=$(echo ${result} | awk '{print $2 }' | cut -d '/' -f 2)
+        build_output
+      fi
+    done
+  else
+    # Loop over each IP address in the range
+    for IP in ${HOST_LIST}; do
+      # validate ip
+      check_ip "${IP}"
+      # Make a curl request to Web servers
+      result=$(curl --max-time 3 --silent --head http://${IP}:${PORT} | grep "Server" | tr -d '\r')
+      # Check if curl succeeded and Web Server was found
+      if [ ${#result} -gt 0 ]; then
+        server=$(echo ${result} | awk '{print $2 }' | cut -d '/' -f 1)
+        version=$(echo ${result} | awk '{print $2 }' | cut -d '/' -f 2)
+        build_output
+      fi
+    done
+  fi
 done
 
