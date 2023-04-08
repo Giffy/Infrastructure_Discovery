@@ -19,3 +19,8 @@
       print_error "$1 is not a valid port number"
     fi
   }
+
+
+  list_length () {
+          echo $(wc -w <<< "$@")
+  }
