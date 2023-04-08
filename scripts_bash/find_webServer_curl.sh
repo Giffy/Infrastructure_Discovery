@@ -18,8 +18,8 @@ OUTPUT_FORMAT=$(get_setting_value "Output" "format" )
   # Define function to display help message
   function display_help {
     echo "Usage: $0 <host_list> <port_list> [options]"
-    echo "Example: find_webServer.sh -s \"192.168.1.2 192.168.1.20\" -p \"80 443\""
-    echo "Example: find_webServer.sh -i \"192.168.1\" -p \"80 443\""
+    echo "Example: find_webServer_curl.sh -s \"192.168.1.2 192.168.1.20\" -p \"80 443\""
+    echo "Example: find_webServer_curl.sh -i \"192.168.1\" -p \"80 443\""
     echo ""
     echo "Options:"
     echo "-s, --servers=LIST  List of hosts to scan"
