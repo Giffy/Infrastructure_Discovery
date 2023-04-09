@@ -21,6 +21,3 @@
   }
 
 
-  list_length () {
-          echo $(wc -w <<< "$@")
-  }

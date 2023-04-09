@@ -10,6 +10,7 @@
 source ../modules/error_management.sh
 source ../modules/read_setup.sh
 source ../modules/validators.sh
+source ../modules/helper.sh
 
 # Read setup files
 OUTPUT_FORMAT=$(get_setting_value "Output" "format" )
@@ -96,23 +97,20 @@ function build_output(){
 # Main script
 
 i=1
-
 # Loop over each port in the range
 for PORT in ${PORT_LIST}; do
   # validate port number
   check_port "$PORT"
   if [ ${#IP_PREFIX} -gt 0 ]; then
-    total_iterations=254
+    total_hosts=$(( $(list_length $IP_PREFIX) * 254))
+    total_iterations=$(($total_hosts*$(list_length $PORT_LIST)))
     # Loop over each IP_PREFIX in the range
     for IP in $(seq -f ${IP_PREFIX}".%g" 1 254); do
       # validate ip
       check_ip "${IP}"
       # Progress bar
-        # calculate the progress percentage
-        progress=$(((${i}+1)*100/$total_iterations))
-        i=$((${i}+1))
-        # output progress bar
-        printf  "\r[%-50s] %d%%" $(printf "#%.0s" {1..$((progress/2))}) $progress
+      progress_bar ${total_iterations} ${i}
+      i=$((${i}+1))
       # Make a curl request to Web servers
       result=$(curl --max-time 3 --silent --head http://${IP}:${PORT} | grep "Server" | tr -d '\r' )
       # Check if curl succeeded and Web Server was found
@@ -123,17 +121,14 @@ for PORT in ${PORT_LIST}; do
       fi
     done
   else
-    total_iterations=$(($(list_length HOST_LIST)*$(list_length PORT_LIST)))
+    total_iterations=$(($(list_length $HOST_LIST)*$(list_length $PORT_LIST)))
     # Loop over each IP address in the range
     for IP in ${HOST_LIST}; do
       # validate ip
       check_ip "${IP}"
       # Progress bar
-        # calculate the progress percentage
-        progress=$(((${i}+1)*100/$total_iterations))
-        i=$((${i}+1))
-        # output progress bar
-        printf  "\r[%-50s] %d%%" $(printf "#%.0s" {1..$((progress/2))}) $progress
+      progress_bar ${total_iterations} ${i}
+      i=$((${i}+1))
       # Make a curl request to Web servers
       result=$(curl --max-time 3 --silent --head http://${IP}:${PORT} | grep "Server" | tr -d '\r')
       # Check if curl succeeded and Web Server was found
