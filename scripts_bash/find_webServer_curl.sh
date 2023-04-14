@@ -34,32 +34,12 @@ OUTPUT_FORMAT=$(get_setting_value "Output" "format" )
   while [[ $# -gt 0 ]]; do
     key="$1"
     case $key in
-      -h|--help)
-        display_help
-        exit 0
-        ;;
-      -s|--servers)
-        HOST_LIST="$2"
-        ARGUMENTS=1
-        shift
-        ;;
-      -p|--ports)
-        PORT_LIST="$2"
-        shift
-        ;;
-      -i|--ippreffix)
-        IP_PREFIX="$2"
-        ARGUMENTS=1
-        shift
-        ;;
-      -r|--rangehost)
-        HOST_RANGE="$2"
-        shift
-        ;;
-      -t|--rangeports)
-        PORT_RANGE="$2"
-        shift
-        ;;
+      -h|--help)       display_help; exit 0 ;;
+      -s|--servers)    HOST_LIST="$2"; ARGUMENTS=1; shift;;
+      -p|--ports)      PORT_LIST="$2";              shift;;
+      -i|--ippreffix)  IP_PREFIX="$2"; ARGUMENTS=1; shift;;
+      -r|--rangehost)  HOST_RANGE="$2";             shift;;
+      -t|--rangeports) PORT_RANGE="$2";             shift;;
     esac
     shift
   done
